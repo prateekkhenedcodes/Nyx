@@ -24,6 +24,7 @@ func main() {
 	mux.Handle("/app/", apiCfg.MiddleWareMetrics(handler))
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.CountHits)
+	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 
 	s := http.Server{
 		Handler: mux,
