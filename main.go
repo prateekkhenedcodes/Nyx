@@ -22,7 +22,6 @@ func main() {
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot)))
 
 	mux.Handle("/app/", apiCfg.MiddleWareMetrics(handler))
-
 	mux.HandleFunc("GET /admin/metrics", apiCfg.CountHits)
 	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 

@@ -1,8 +1,10 @@
 ## health check 
-
 GET http://localhost:8080/api/healthz
 
 
 ## metrics end-point 
-
 GET http://localhost:8080/admin/metrics
+
+
+## /app/ end-point
+GET http://localhost:8080/app/
