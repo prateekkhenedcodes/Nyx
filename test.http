@@ -8,3 +8,7 @@ GET http://localhost:8080/admin/metrics
 
 ## /app/ end-point
 GET http://localhost:8080/app/
+
+
+## /api/register
+POST http://localhost:8080/api/register
