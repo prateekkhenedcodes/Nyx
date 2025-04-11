@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -82,6 +83,43 @@ func TestValidateJWT(t *testing.T) {
 			}
 			if gotUserId != tt.wantUserId {
 				t.Errorf("ValidateJWT() gotUserId: %v, wantUserId: %v", gotUserId, tt.wantUserId)
+			}
+		})
+	}
+}
+
+func TestStripAuth(t *testing.T) {
+	authHeader1 := "Bearer TOKEN_STRING"
+	authHeader2 := "Bearer "
+	token1, _ := stripBearer(authHeader1)
+	token2, _ := stripBearer(authHeader2)
+
+	tests := []struct {
+		name    string
+		auth    string
+		token   string
+		wantErr bool
+	}{
+		{
+			"Correct token", authHeader1, token1, false,
+		},
+		{
+			"Correct token", authHeader2, token2, false,
+		},
+		{
+			"Incorrect auth", "Bearer", token1, true,
+		},
+		{
+			"Incorrect token", authHeader1, "TOKEN", true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token, err := stripBearer(tt.auth)
+			if !strings.Contains(tt.auth, token) {
+				if (err != nil) != tt.wantErr {
+					t.Errorf("stripBearer() error: %v, wantErr %v", err, tt.wantErr)
+				}
 			}
 		})
 	}
