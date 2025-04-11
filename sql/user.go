@@ -25,7 +25,7 @@ func CreateUserTable(db *sql.DB) error {
 	return nil
 }
 
-func CreateUser(db *sql.DB, id string, created_at string, updated_at string, code string) (User, error) {
+func AddUser(db *sql.DB, id string, created_at string, updated_at string, code string) (User, error) {
 	query := `INSERT INTO users(id, created_at, updated_at, nyx_code)
 			values(?, ?, ?, ?)
 			RETURNING *`

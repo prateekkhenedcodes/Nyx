@@ -22,11 +22,7 @@ func (cfg *apiConfig) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sql.CreateUserTable(cfg.db)
-	if err != nil {
-		respondWithError(w, 500, "could not create user table", err)
-	}
-	dbUser, err := sql.CreateUser(cfg.db, uuid.New().String(), time.Now().Format(time.RFC3339), time.Now().Format(time.RFC3339), code)
+	dbUser, err := sql.AddUser(cfg.db, uuid.New().String(), time.Now().Format(time.RFC3339), time.Now().Format(time.RFC3339), code)
 	if err != nil {
 		respondWithError(w, 500, "could not insert user data into user table", err)
 	}

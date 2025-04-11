@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	myQueries "github.com/prateekkhenedcodes/Nyx/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type apiConfig struct {
 	fileServerHits atomic.Int32
-	db *sql.DB
+	db             *sql.DB
 }
 
 func main() {
@@ -21,6 +23,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
+	err = myQueries.CreateUserTable(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	const port = "8080"
 	const filePathRoot = "."
