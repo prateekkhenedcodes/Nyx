@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
 
-	myQueries "github.com/prateekkhenedcodes/Nyx/sql"
+	"github.com/joho/godotenv"
+	myQueries "github.com/prateekkhenedcodes/Nyx/sql/schema"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,6 +16,7 @@ import (
 type apiConfig struct {
 	fileServerHits atomic.Int32
 	db             *sql.DB
+	admin          string
 }
 
 func main() {
@@ -32,8 +35,10 @@ func main() {
 	const port = "8080"
 	const filePathRoot = "."
 
+	godotenv.Load(".env")
 	apiCfg := &apiConfig{}
 	apiCfg.db = db
+	apiCfg.admin = os.Getenv("ADMIN")
 
 	mux := http.NewServeMux()
 
@@ -43,6 +48,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.CountHits)
 	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
+	mux.HandleFunc("POST /admin/reset", apiCfg.Reset)
 
 	s := http.Server{
 		Handler: mux,
