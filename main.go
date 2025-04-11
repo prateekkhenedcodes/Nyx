@@ -33,7 +33,7 @@ func main() {
 	}
 
 	const port = "8080"
-	const filePathRoot = "."
+	const filePathRoot = "./assets"
 
 	godotenv.Load(".env")
 	apiCfg := &apiConfig{}
@@ -49,6 +49,7 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
 	mux.HandleFunc("POST /admin/reset", apiCfg.Reset)
+	mux.HandleFunc("POST /api/login", apiCfg.Login)
 
 	s := http.Server{
 		Handler: mux,

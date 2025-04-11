@@ -27,3 +27,18 @@ func AddUser(db *sql.DB, id string, created_at string, updated_at string, code s
 	return user, nil
 
 }
+
+func GetUserById(db *sql.DB, id string) (User, error) {
+	query := `SELECT * FROM users WHERE id = ?`
+	var user User
+	err := db.QueryRow(query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.NyxCode,
+	)
+	if err != nil {
+		return User{}, nil
+	}
+	return user, nil
+}
