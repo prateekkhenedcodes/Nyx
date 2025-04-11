@@ -3,10 +3,18 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/prateekkhenedcodes/Nyx/internal/auth"
 	"github.com/prateekkhenedcodes/Nyx/sql/queries"
 )
+
+type Login struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	JWToken   string `json:"jwt_token"`
+}
 
 func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 	type loginPara struct {
@@ -36,5 +44,18 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, 200, "login successful")
+	defaultExpiryTime := 3600
+
+	token, err := auth.MakeJWT(dbUser.ID, cfg.secretToken, time.Duration(defaultExpiryTime)*time.Second)
+	if err != nil {
+		respondWithError(w, 500, "could not make a JWT ", err)
+		return
+	}
+
+	respondWithJSON(w, 200, Login{
+		ID:        dbUser.ID,
+		CreatedAt: dbUser.CreatedAt,
+		UpdatedAt: dbUser.UpdatedAt,
+		JWToken:   token,
+	})
 }

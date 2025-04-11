@@ -17,6 +17,7 @@ type apiConfig struct {
 	fileServerHits atomic.Int32
 	db             *sql.DB
 	admin          string
+	secretToken    string
 }
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 	apiCfg := &apiConfig{}
 	apiCfg.db = db
 	apiCfg.admin = os.Getenv("ADMIN")
+	apiCfg.secretToken = os.Getenv("SECRET_TOKEN")
 
 	mux := http.NewServeMux()
 
