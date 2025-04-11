@@ -61,6 +61,5 @@ func main() {
 	}
 
 	log.Printf("serving files from %v on port %v", filePathRoot, port)
-	s.ListenAndServe()
-
+	log.Fatal(s.ListenAndServe())
 }
