@@ -56,7 +56,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.CountHits)
 	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
-	mux.HandleFunc("POST /admin/reset", apiCfg.Reset)
+	mux.HandleFunc("POST /admin/system-reset", apiCfg.Reset)
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
 
 	s := http.Server{

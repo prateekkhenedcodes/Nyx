@@ -1,7 +1,7 @@
 # Nyx
 
 
-Nyx is api that is written in Golang where user need not to give any data and communicate securely 
+Nyx is api server that is written completely from scratch in Golang where user need not to give any data and communicate securely 
 
 # Endpoints
 

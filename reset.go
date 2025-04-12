@@ -19,6 +19,10 @@ func (cfg *apiConfig) Reset(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "could not drop the users table", err)
 		return
 	}
+	err = schema.CreateUserTable(cfg.db)
+	if err != nil {
+		respondWithError(w, 500, "could not create the user table", err)
+	}
 	cfg.fileServerHits.Store(0)
 	respondWithJSON(w, 200, "Reset Successful")
 }
