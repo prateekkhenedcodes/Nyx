@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/joho/godotenv"
-	myQueries "github.com/prateekkhenedcodes/Nyx/sql/schema"
+	mySchema "github.com/prateekkhenedcodes/Nyx/sql/schema"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -26,17 +26,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.Close()
-
-	err = myQueries.CreateUserTable(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = myQueries.CreateRefreshToken(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	const port = "8080"
 	const filePathRoot = "./assets"
 
@@ -45,6 +39,15 @@ func main() {
 	apiCfg.db = db
 	apiCfg.admin = os.Getenv("ADMIN")
 	apiCfg.secretToken = os.Getenv("SECRET_TOKEN")
+
+	err = mySchema.CreateUserTable(apiCfg.db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = mySchema.CreateRefreshToken(apiCfg.db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mux := http.NewServeMux()
 
@@ -58,6 +61,7 @@ func main() {
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
 	mux.HandleFunc("POST /admin/system-reset", apiCfg.Reset)
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
+	mux.HandleFunc("POST /api/token/refresh", apiCfg.RefreshToken)
 
 	s := http.Server{
 		Handler: mux,

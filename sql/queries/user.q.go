@@ -12,7 +12,7 @@ type User struct {
 func AddUser(db *sql.DB, id string, created_at string, updated_at string, code string) (User, error) {
 	query := `INSERT INTO users(id, created_at, updated_at, nyx_code)
 			values(?, ?, ?, ?)
-			RETURNING *`
+			RETURNING *;`
 	var user User
 	err := db.QueryRow(query, id, created_at, updated_at, code).Scan(
 		&user.ID,
@@ -29,7 +29,7 @@ func AddUser(db *sql.DB, id string, created_at string, updated_at string, code s
 }
 
 func GetUserById(db *sql.DB, id string) (User, error) {
-	query := `SELECT * FROM users WHERE id = ?`
+	query := `SELECT * FROM users WHERE id = ?;`
 	var user User
 	err := db.QueryRow(query, id).Scan(
 		&user.ID,

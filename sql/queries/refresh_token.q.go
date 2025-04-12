@@ -1,6 +1,8 @@
 package queries
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type RefreshToken struct {
 	Token     string
@@ -37,4 +39,23 @@ func AddRefreshToken(db *sql.DB,
 
 	return refreshToken, nil
 
+}
+
+func GetUserFromRefreshToken(db *sql.DB, token string) (RefreshToken, error) {
+	query := `SELECT * FROM refresh_tokens WHERE token = ?;`
+
+	var refreshToken RefreshToken
+	err := db.QueryRow(query, token).Scan(
+		&refreshToken.Token,
+		&refreshToken.CreatedAt,
+		&refreshToken.UpdatedAt,
+		&refreshToken.ExpiresAt,
+		&refreshToken.RevokedAt,
+		&refreshToken.UserId,
+	)
+	if err != nil {
+		return RefreshToken{}, err
+	}
+
+	return refreshToken, nil
 }

@@ -1,6 +1,8 @@
 package schema
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 func CreateRefreshToken(db *sql.DB) error {
 	query := `CREATE TABLE IF NOT EXISTS refresh_tokens(
@@ -19,5 +21,15 @@ func CreateRefreshToken(db *sql.DB) error {
 		return err
 	}
 
+	return nil
+}
+
+func DeleteRefreshTokenTable(db *sql.DB) error {
+	query := "DROP TABLE refresh_tokens;"
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -2,7 +2,6 @@ package schema
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func CreateUserTable(db *sql.DB) error {
@@ -24,7 +23,7 @@ func DeleteUserTable(db *sql.DB) error {
 
 	_, err := db.Exec(query)
 	if err != nil {
-		return fmt.Errorf("could not delete the user table")
+		return err
 	}
 	return nil
 }
