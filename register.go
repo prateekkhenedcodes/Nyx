@@ -30,7 +30,11 @@ func (cfg *apiConfig) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := queries.AddUser(cfg.db, uuid.New().String(), time.Now().Format(time.RFC3339), time.Now().Format(time.RFC3339), hashedCode)
+	dbUser, err := queries.AddUser(cfg.db,
+		uuid.New().String(),
+		time.Now().Format(time.RFC3339),
+		time.Now().Format(time.RFC3339),
+		hashedCode)
 	if err != nil {
 		respondWithError(w, 500, "could not insert user data into user table", err)
 		return

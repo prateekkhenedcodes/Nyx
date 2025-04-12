@@ -32,6 +32,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = myQueries.CreateRefreshToken(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	const port = "8080"
 	const filePathRoot = "./assets"

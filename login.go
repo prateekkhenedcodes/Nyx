@@ -10,10 +10,11 @@ import (
 )
 
 type Login struct {
-	ID        string `json:"id"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-	JWToken   string `json:"jwt_token"`
+	ID           string `json:"id"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+	JWToken      string `json:"jwt_token"`
+	RefreshTOken string `json:"refresh_token"`
 }
 
 func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
@@ -52,10 +53,28 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, 500, "could not generate a new refresh token", err)
+	}
+
+	refreshTData, err := queries.AddRefreshToken(cfg.db,
+		refreshToken,
+		time.Now().Format(time.RFC3339),
+		time.Now().Format(time.RFC3339),
+		dbUser.ID,
+		time.Now().AddDate(0, 0, 60).Format(time.RFC3339),
+		"")
+	if err != nil {
+		respondWithError(w, 500, "could not add refresh token to data table", err)
+		return
+	}
+
 	respondWithJSON(w, 200, Login{
-		ID:        dbUser.ID,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
-		JWToken:   token,
+		ID:           dbUser.ID,
+		CreatedAt:    dbUser.CreatedAt,
+		UpdatedAt:    dbUser.UpdatedAt,
+		JWToken:      token,
+		RefreshTOken: refreshTData.Token,
 	})
 }
