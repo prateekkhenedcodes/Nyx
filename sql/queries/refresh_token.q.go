@@ -59,3 +59,26 @@ func GetUserFromRefreshToken(db *sql.DB, token string) (RefreshToken, error) {
 
 	return refreshToken, nil
 }
+
+func RevokeRefreshToken(db *sql.DB, token string, updateT string, revokeT string) (RefreshToken, error) {
+	query := `	UPDATE refresh_tokens
+				SET updated_at = ?,  revoked_at = ?
+				WHERE token = ?
+				RETURNING *;
+			`
+
+	var refreshToken RefreshToken
+
+	err := db.QueryRow(query, updateT, revokeT, token).Scan(
+		&refreshToken.Token,
+		&refreshToken.CreatedAt,
+		&refreshToken.UpdatedAt,
+		&refreshToken.ExpiresAt,
+		&refreshToken.RevokedAt,
+		&refreshToken.UserId,
+	)
+	if err != nil {
+		return RefreshToken{}, err
+	}
+	return refreshToken, nil
+}
