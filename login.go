@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -45,6 +46,28 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	refreshTokenData, err := queries.GetRefreshTokenbyId(cfg.db, dbUser.ID)
+	if err != nil {
+		respondWithError(w, 500, "could not get the refrestoken by id ", err)
+		return
+	}
+
+	if refreshTokenData.RevokedAt == "" {
+		respondWithError(w, 409, "you are already logged in", fmt.Errorf("your refresh token is not revoked"))
+		return
+	}
+
+	expTime, err := time.Parse(time.RFC3339, refreshTokenData.ExpiresAt)
+	if err != nil {
+		respondWithError(w, 500, "could not parse the time string to formatted type", err)
+		return
+	}
+
+	if !expTime.Before(time.Now()) {
+		respondWithError(w, 409, "you are already logged in ", fmt.Errorf("your refresh token is still valid"))
+		return
+	}
+
 	defaultExpiryTime := 3600
 
 	token, err := auth.MakeJWT(dbUser.ID, cfg.secretToken, time.Duration(defaultExpiryTime)*time.Second)
@@ -70,7 +93,7 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, 200, Login{
+	respondWithJSON(w, 201, Login{
 		ID:           dbUser.ID,
 		CreatedAt:    dbUser.CreatedAt,
 		UpdatedAt:    dbUser.UpdatedAt,

@@ -82,3 +82,23 @@ func RevokeRefreshToken(db *sql.DB, token string, updateT string, revokeT string
 	}
 	return refreshToken, nil
 }
+
+func GetRefreshTokenbyId(db *sql.DB, id string) (RefreshToken, error) {
+	query := `	SELECT * FROM refresh_tokens
+				WHERE user_id = ?; `
+
+	var refreshToken RefreshToken
+	err := db.QueryRow(query, id).Scan(
+		&refreshToken.Token,
+		&refreshToken.CreatedAt,
+		&refreshToken.UpdatedAt,
+		&refreshToken.ExpiresAt,
+		&refreshToken.RevokedAt,
+		&refreshToken.UserId,
+	)
+	if err != nil {
+		return refreshToken, err
+	}
+
+	return refreshToken, nil
+}
