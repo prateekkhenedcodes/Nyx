@@ -63,6 +63,7 @@ func main() {
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
 	mux.HandleFunc("POST /api/token/refresh", apiCfg.RefreshToken)
 	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
+	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 
 	s := http.Server{
 		Handler: mux,
