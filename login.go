@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -48,24 +49,20 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 
 	refreshTokenData, err := queries.GetRefreshTokenbyId(cfg.db, dbUser.ID)
 	if err != nil {
-		respondWithError(w, 500, "could not get the refrestoken by id ", err)
-		return
+		log.Print("could not get the refrestoken by id")
 	}
 
-	if refreshTokenData.RevokedAt == "" {
-		respondWithError(w, 409, "you are already logged in", fmt.Errorf("your refresh token is not revoked"))
-		return
-	}
+	if refreshTokenData != (queries.RefreshToken{}) {
+		expTime, err := time.Parse(time.RFC3339, refreshTokenData.ExpiresAt)
+		if err != nil {
+			respondWithError(w, 500, "could not parse the expiration time", err)
+			return
+		}
 
-	expTime, err := time.Parse(time.RFC3339, refreshTokenData.ExpiresAt)
-	if err != nil {
-		respondWithError(w, 500, "could not parse the time string to formatted type", err)
-		return
-	}
-
-	if !expTime.Before(time.Now()) {
-		respondWithError(w, 409, "you are already logged in ", fmt.Errorf("your refresh token is still valid"))
-		return
+		if !expTime.Before(time.Now()) && refreshTokenData.RevokedAt == "" {
+			respondWithError(w, 409, "you are already logged in ", fmt.Errorf("your refresh token is still valid"))
+			return
+		}
 	}
 
 	defaultExpiryTime := 3600
@@ -93,7 +90,7 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, 201, Login{
+	respondWithJSON(w, 200, Login{
 		ID:           dbUser.ID,
 		CreatedAt:    dbUser.CreatedAt,
 		UpdatedAt:    dbUser.UpdatedAt,
