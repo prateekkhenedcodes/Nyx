@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -47,22 +46,10 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshTokenData, err := queries.GetRefreshTokenbyId(cfg.db, dbUser.ID)
+	err = cfg.IsLoggedIn(dbUser.ID)
 	if err != nil {
-		log.Print("could not get the refrestoken by id")
-	}
-
-	if refreshTokenData != (queries.RefreshToken{}) {
-		expTime, err := time.Parse(time.RFC3339, refreshTokenData.ExpiresAt)
-		if err != nil {
-			respondWithError(w, 500, "could not parse the expiration time", err)
-			return
-		}
-
-		if !expTime.Before(time.Now()) && refreshTokenData.RevokedAt == "" {
-			respondWithError(w, 409, "you are already logged in ", fmt.Errorf("your refresh token is still valid"))
-			return
-		}
+		respondWithError(w, 409, "you are already loggedin", fmt.Errorf("you are already logged in"))
+		return
 	}
 
 	defaultExpiryTime := 3600
@@ -97,4 +84,28 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		JWToken:      token,
 		RefreshTOken: refreshTData.Token,
 	})
+}
+
+func (cfg *apiConfig) IsLoggedIn(id string) error {
+	refreshTokenDatas, err := queries.GetAllRefreshTokensbyId(cfg.db, id)
+	if err != nil {
+		return fmt.Errorf("could not get refresh tokens: %w", err)
+	}
+
+	for _, refreshTokenData := range refreshTokenDatas {
+		if refreshTokenData.ExpiresAt == "" {
+			continue
+		}
+
+		expTime, err := time.Parse(time.RFC3339, refreshTokenData.ExpiresAt)
+		if err != nil {
+			return fmt.Errorf("invalid expiry format: %w", err)
+		}
+
+		if expTime.After(time.Now()) && refreshTokenData.RevokedAt == "" {
+			return fmt.Errorf("you are logged in")
+		}
+	}
+
+	return nil
 }
