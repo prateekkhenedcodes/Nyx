@@ -1,7 +1,18 @@
 # Nyx
 
 
-Nyx is api server that is written completely from scratch in Golang where user need not to give any data and communicate securely 
+Nyx is HTTP webserver that is written from scratch in Golang where user need not to give any data and communicate securely.
+
+# Requirements
+
+```go1.24.1``` or greater
+
+# Installation and setup
+
+
+* clone the project with git clone ```https://github.com/prateekkhenedcodes/Nyx.git```
+* Install project dependencies with ```go mod tidy``` in the root of the project
+
 
 # Endpoints
 
@@ -12,6 +23,9 @@ Nyx is api server that is written completely from scratch in Golang where user n
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
 	mux.HandleFunc("POST /admin/reset", apiCfg.Reset)
 	mux.HandleFunc("POST /api/login", apiCfg.Login)
+	mux.HandleFunc("POST /api/token/refresh", apiCfg.RefreshToken)
+	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
+	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 ```
 
 ##### ``/app/`` 
@@ -37,3 +51,15 @@ Nyx is api server that is written completely from scratch in Golang where user n
 ##### ``/api/login``
 
 * ``/api/login`` endpoint where user can login by entering id and the nyx code 
+
+##### ``/api/token/refresh``
+
+* ``/api/token/refresh`` endpoint where client can refresh their access token using their refresh token
+
+##### ``/api/token/revoke``
+
+* ``/api/token/revoke`` is endpoint where client can revoke their refresh token 
+
+##### ``/api/logout``
+
+* ``/api/logout`` is self-explanatory
