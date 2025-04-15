@@ -48,6 +48,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = mySchema.CreateNyxServer(apiCfg.db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = mySchema.CreateNyxServerMessages(apiCfg.db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mux := http.NewServeMux()
 
@@ -64,6 +72,7 @@ func main() {
 	mux.HandleFunc("POST /api/token/refresh", apiCfg.RefreshToken)
 	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
+	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
 
 	s := http.Server{
 		Handler: mux,
