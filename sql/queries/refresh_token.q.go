@@ -20,7 +20,14 @@ func AddRefreshToken(db *sql.DB,
 	userId string,
 	expiresAt string,
 	revokedAt string) (RefreshToken, error) {
-	query := `INSERT INTO refresh_tokens(token, created_at, updated_at, user_id, expires_at, revoked_at)
+	query := `INSERT INTO refresh_tokens(
+		token,
+	 	created_at,
+	  	updated_at,
+	  	user_id,
+	    expires_at,
+		revoked_at
+		)
 		VALUES(?, ?, ?, ?, ?, ?)
 		RETURNING *`
 
