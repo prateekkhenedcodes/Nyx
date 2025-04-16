@@ -52,12 +52,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = mySchema.CreateNyxServerMessages(apiCfg.db)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	mux := http.NewServeMux()
+
+	go HandleBroadcasts()
 
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot)))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +71,7 @@ func main() {
 	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
+	mux.HandleFunc("/api/nyx-servers/join", apiCfg.JoinNyxServer)
 
 	s := http.Server{
 		Handler: mux,

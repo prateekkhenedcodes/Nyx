@@ -43,3 +43,21 @@ func AddNyxServer(db *sql.DB,
 	}
 	return nyxServer, nil
 }
+
+func GetNyxServerByServerId(db *sql.DB, serverId string) (NyxServer, error) {
+	query := `SELECT * FROM nyx_servers WHERE server_id = ?`
+
+	var nyxServer NyxServer
+	err := db.QueryRow(query, serverId).Scan(
+		&nyxServer.ServerId,
+		&nyxServer.CreatedAt,
+		&nyxServer.ExpiresAt,
+		&nyxServer.MaxParticipants,
+		&nyxServer.ActiveSession,
+		&nyxServer.UserId,
+	)
+	if err != nil {
+		return NyxServer{}, err
+	}
+	return nyxServer, nil
+}
