@@ -1,84 +1,56 @@
-/* Reset & Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #0d1117;
-  color: #c9d1d9;
-  line-height: 1.6;
-}
-
-a {
-  color: #58a6ff;
-  text-decoration: none;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  background-color: #161b22;
-  border-bottom: 1px solid #30363d;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-nav a {
-  margin-left: 1.5rem;
-  font-weight: 500;
-}
-
-main {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
-  padding: 2rem;
-}
-
-.hero {
-  text-align: center;
-  max-width: 700px;
-}
-
-.hero h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-  color: #8b949e;
-}
-
-.cta-button {
-  display: inline-block;
-  background-color: #238636;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
-}
-
-.cta-button:hover {
-  background-color: #2ea043;
-}
-
-footer {
-  text-align: center;
-  padding: 1rem;
-  background-color: #161b22;
-  border-top: 1px solid #30363d;
-  font-size: 0.9rem;
-  color: #8b949e;
-}
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: auto;
+    padding: 2rem;
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .server-controls,
+  .message-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  input {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: none;
+  }
+  
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #4b0082;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #6a0dad;
+  }
+  
+  .chat-box {
+    background: #1e1e1e;
+    padding: 1rem;
+    height: 300px;
+    overflow-y: auto;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    border: 1px solid #333;
+  }
+  

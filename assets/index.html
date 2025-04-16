@@ -3,29 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nyx</title>
+  <title>Nyx Chat</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <div class="logo">🌑 Nyx</div>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">Features</a>
-      <a href="#">Get Started</a>
-    </nav>
-  </header>
+  <div class="container">
+    <header>
+      <h1>🌑 Nyx Chat</h1>
+      <p>Private conversations, no strings attached.</p>
+    </header>
 
-  <main>
-    <section class="hero">
-      <h1>Private Conversations. No Strings Attached.</h1>
-      <p>Nyx doesn't store your messages, doesn't track you, and never asks for your data. Just simple, secure communication.</p>
-      <a href="#" class="cta-button">Start Chatting</a>
+    <section class="server-controls">
+      <input id="serverIdInput" placeholder="Enter or create server ID" />
+      <button id="createBtn">Create Server</button>
+      <button id="joinBtn">Join Server</button>
     </section>
-  </main>
 
-  <footer>
-    <p>&copy; 2025 Nyx. Built for privacy, powered by trust.</p>
-  </footer>
+    <section class="chat-box" id="chatBox"></section>
+
+    <section class="message-controls">
+      <input id="messageInput" placeholder="Type a message..." />
+      <button id="sendBtn">Send</button>
+    </section>
+  </div>
+
+  <script>
+    let socket = null;
+    let serverId = "";
+    const chatBox = document.getElementById("chatBox");
+
+    document.getElementById("createBtn").onclick = async () => {
+      const res = await fetch("http://localhost:8080/api/nyx-servers", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer YOUR_JWT_TOKEN_HERE",
+        },
+      });
+      const data = await res.json();
+      serverId = data.server_id;
+      document.getElementById("serverIdInput").value = serverId;
+      alert("Server created!");
+    };
+
+    document.getElementById("joinBtn").onclick = () => {
+      serverId = document.getElementById("serverIdInput").value;
+      if (!serverId) return alert("Please enter a server ID.");
+      socket = new WebSocket(`ws://localhost:8080/api/nyx-servers/join?server_id=${serverId}`);
+
+      socket.onopen = () => {
+        appendMessage("🟢 Connected to server.");
+      };
+
+      socket.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        appendMessage(`${msg.sender_id}: ${msg.content}`);
+      };
+
+      socket.onclose = () => {
+        appendMessage("🔴 Disconnected.");
+      };
+    };
+
+    document.getElementById("sendBtn").onclick = () => {
+      const msgInput = document.getElementById("messageInput");
+      const content = msgInput.value.trim();
+      if (!content || !socket) return;
+
+      const msg = {
+        sender_id: "html-client",
+        content,
+        server_id: serverId,
+        timestamp: new Date().toISOString(),
+      };
+
+      socket.send(JSON.stringify(msg));
+      msgInput.value = "";
+    };
+
+    function appendMessage(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>

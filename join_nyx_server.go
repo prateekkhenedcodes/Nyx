@@ -30,6 +30,7 @@ var mu sync.Mutex
 var broadcast = make(chan Message)
 
 func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
+
 	serverId := r.URL.Query().Get("server_id")
 	if serverId == "" {
 		respondWithError(w, 401, "need a proper query ", fmt.Errorf("query is empty"))
@@ -68,7 +69,6 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 			mu.Unlock()
 			break
 		}
-		conn.WriteJSON(msg.Content)
 		broadcast <- msg
 	}
 }
