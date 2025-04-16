@@ -26,6 +26,7 @@ Nyx is HTTP webserver that is written from scratch in Golang where user need not
 	mux.HandleFunc("POST /api/token/refresh", apiCfg.RefreshToken)
 	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
+	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
 ```
 
 ##### ``/app/`` 
@@ -63,3 +64,7 @@ Nyx is HTTP webserver that is written from scratch in Golang where user need not
 ##### ``/api/logout``
 
 * ``/api/logout`` is self-explanatory
+
+##### ``/api/nyx-servers`` 
+
+* ``/api/nyx-servers`` is endpoint where user can create credintials for the nys-server (chat room) , using them you can enter the nyx-server.
