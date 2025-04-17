@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/prateekkhenedcodes/Nyx/internal/auth"
@@ -49,9 +50,29 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = queries.GetNyxServerByServerId(cfg.db, serverId)
+	serverData, err := queries.GetNyxServerByServerId(cfg.db, serverId)
 	if err != nil {
 		respondWithError(w, 401, "the server if does not exists", err)
+		return
+	}
+
+	expTime, err := time.Parse(time.RFC3339, serverData.ExpiresAt)
+	if err != nil {
+		respondWithError(w, 500, "could not parse the sting to time.time", err)
+		return
+	}
+
+	if expTime.Before(time.Now()) {
+		respondWithError(w, 401, "nyx_server has been expired", fmt.Errorf("server id has been expired"))
+		return
+	}
+
+	mu.Lock()
+	count := len(clients[serverId])
+	mu.Unlock()
+
+	if count >= serverData.MaxParticipants {
+		respondWithError(w, 401, "Unauthorised", fmt.Errorf("the room is in its full capacity"))
 		return
 	}
 
@@ -70,6 +91,23 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 
 	log.Printf("A client joined the server with server id %v", serverId)
+
+	go func() {
+		time.Sleep(time.Until(expTime))
+
+		mu.Lock()
+		if clients[serverId] != nil {
+			for conn := range clients[serverId] {
+				conn.WriteMessage(websocket.CloseMessage, []byte("nyx server has expired"))
+				conn.Close()
+			}
+			delete(clients, serverId)
+		}
+		mu.Unlock()
+
+		log.Printf("Server %v has expired. Closing all connections.", serverId)
+
+	}()
 
 	for {
 		var msg Message
