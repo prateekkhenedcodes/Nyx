@@ -58,10 +58,10 @@ func main() {
 	go HandleBroadcasts()
 
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot)))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 	})
-	mux.Handle("/app/", apiCfg.MiddleWareMetrics(handler))
+	mux.Handle("GET /app/", apiCfg.MiddleWareMetrics(handler))
 	mux.HandleFunc("GET /admin/metrics", apiCfg.CountHits)
 	mux.HandleFunc("GET /api/healthz", ReadinessHandler)
 	mux.HandleFunc("POST /api/register", apiCfg.Register)
@@ -71,7 +71,7 @@ func main() {
 	mux.HandleFunc("POST /api/token/revoke", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
-	mux.HandleFunc("/api/nyx-servers/join", apiCfg.JoinNyxServer)
+	mux.HandleFunc("GET /api/nyx-servers/join", apiCfg.JoinNyxServer)
 
 	s := http.Server{
 		Handler: mux,
