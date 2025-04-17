@@ -13,10 +13,11 @@ import (
 )
 
 type Message struct {
-	SenderID  string `json:"sender_id"`
-	Content   string `json:"content"`
-	ServerID  string `json:"server_id"`
-	Timestamp string `json:"timestamp"`
+	Pseudonym string          `json:"pseudonym"`
+	Content   string          `json:"content"`
+	ServerID  string          `json:"server_id"`
+	Timestamp string          `json:"timestamp"`
+	Conn      *websocket.Conn `json:"-"` // omit from JSON
 }
 
 var upgrader = websocket.Upgrader{
@@ -81,7 +82,6 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "upgrade failed", err)
 		return
 	}
-	defer conn.Close()
 
 	mu.Lock()
 	if clients[serverId] == nil {
@@ -119,7 +119,13 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 			mu.Unlock()
 			break
 		}
-		broadcast <- msg
+		broadcast <- Message{
+			Pseudonym: msg.Pseudonym,
+			Content:   msg.Content,
+			ServerID:  msg.ServerID,
+			Timestamp: msg.Timestamp,
+			Conn:      conn,
+		}
 	}
 }
 
@@ -128,6 +134,9 @@ func HandleBroadcasts() {
 		msg := <-broadcast
 		mu.Lock()
 		for conn := range clients[msg.ServerID] {
+			if conn == msg.Conn {
+				continue
+			}
 			err := conn.WriteJSON(msg)
 			if err != nil {
 				log.Println("Write error:", err)

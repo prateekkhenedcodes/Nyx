@@ -52,7 +52,7 @@ func (cfg *apiConfig) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defaultExpiryTime := 900
+	defaultExpiryTime := 3600
 
 	token, err := auth.MakeJWT(dbUser.ID, cfg.secretToken, time.Duration(defaultExpiryTime)*time.Second)
 	if err != nil {
