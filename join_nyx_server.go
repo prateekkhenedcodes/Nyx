@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/prateekkhenedcodes/Nyx/internal/auth"
 	"github.com/prateekkhenedcodes/Nyx/sql/queries"
 )
 
@@ -32,12 +33,23 @@ var broadcast = make(chan Message)
 func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 
 	serverId := r.URL.Query().Get("server_id")
+	token := r.URL.Query().Get("token")
 	if serverId == "" {
-		respondWithError(w, 401, "need a proper query ", fmt.Errorf("query is empty"))
+		respondWithError(w, 401, "need a proper query", fmt.Errorf("query for server id is empty"))
+		return
+	}
+	if token == "" {
+		respondWithError(w, 401, "Unauthorised access", fmt.Errorf("query for access token is empty"))
 		return
 	}
 
-	_, err := queries.GetNyxServerByServerId(cfg.db, serverId)
+	_, err := auth.ValidateJWT(token, cfg.secretToken)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorised", err)
+		return
+	}
+
+	_, err = queries.GetNyxServerByServerId(cfg.db, serverId)
 	if err != nil {
 		respondWithError(w, 401, "the server if does not exists", err)
 		return

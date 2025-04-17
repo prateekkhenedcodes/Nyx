@@ -8,83 +8,85 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>🌑 Nyx Chat</h1>
-      <p>Private conversations, no strings attached.</p>
-    </header>
+    <h1>🌑 Nyx Chat</h1>
 
-    <section class="server-controls">
-      <input id="serverIdInput" placeholder="Enter or create server ID" />
-      <button id="createBtn">Create Server</button>
-      <button id="joinBtn">Join Server</button>
-    </section>
+    <input id="tokenInput" type="text" placeholder="Enter your access token (JWT)" />
+    <input id="serverIdInput" type="text" placeholder="Enter server ID or create one" />
+    
+    <div class="buttons">
+      <button onclick="createNyxServer()">Create Nyx Server</button>
+      <button onclick="joinRoom()">Join Room</button>
+    </div>
 
-    <section class="chat-box" id="chatBox"></section>
+    <div id="chatBox" class="chat-box"></div>
 
-    <section class="message-controls">
-      <input id="messageInput" placeholder="Type a message..." />
-      <button id="sendBtn">Send</button>
-    </section>
+    <div class="message-input">
+      <input id="messageInput" type="text" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
   </div>
 
   <script>
-    let socket = null;
+    let socket;
     let serverId = "";
-    const chatBox = document.getElementById("chatBox");
+    let token = "";
 
-    document.getElementById("createBtn").onclick = async () => {
-      const res = await fetch("http://localhost:8080/api/nyx-servers", {
+    async function createNyxServer() {
+      token = document.getElementById("tokenInput").value;
+      const response = await fetch("http://localhost:8080/api/nyx-servers", {
         method: "POST",
         headers: {
-          Authorization: "Bearer YOUR_JWT_TOKEN_HERE",
-        },
+          "Authorization": `Bearer ${token}`,
+        }
       });
-      const data = await res.json();
+
+      const data = await response.json();
       serverId = data.server_id;
       document.getElementById("serverIdInput").value = serverId;
-      alert("Server created!");
-    };
+    }
 
-    document.getElementById("joinBtn").onclick = () => {
+    function joinRoom() {
+      token = document.getElementById("tokenInput").value;
       serverId = document.getElementById("serverIdInput").value;
-      if (!serverId) return alert("Please enter a server ID.");
-      socket = new WebSocket(`ws://localhost:8080/api/nyx-servers/join?server_id=${serverId}`);
+
+      socket = new WebSocket(`ws://localhost:8080/api/nyx-servers/join?server_id=${serverId}&token=${token}`);
 
       socket.onopen = () => {
-        appendMessage("🟢 Connected to server.");
+        appendMessage("🟢 Connected to room: " + serverId);
       };
 
       socket.onmessage = (event) => {
         const msg = JSON.parse(event.data);
-        appendMessage(`${msg.sender_id}: ${msg.content}`);
+        appendMessage(`💬 ${msg.sender_id}: ${msg.content}`);
       };
 
       socket.onclose = () => {
-        appendMessage("🔴 Disconnected.");
+        appendMessage("🔴 Disconnected from server");
       };
-    };
+    }
 
-    document.getElementById("sendBtn").onclick = () => {
-      const msgInput = document.getElementById("messageInput");
-      const content = msgInput.value.trim();
-      if (!content || !socket) return;
+    function sendMessage() {
+      const message = document.getElementById("messageInput").value;
+      if (!message.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
 
-      const msg = {
-        sender_id: "html-client",
-        content,
+      const msgData = {
+        sender_id: "web-client",
+        content: message,
         server_id: serverId,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       };
 
-      socket.send(JSON.stringify(msg));
-      msgInput.value = "";
-    };
+      socket.send(JSON.stringify(msgData));
+      appendMessage(`🧍 You: ${message}`);
+      document.getElementById("messageInput").value = "";
+    }
 
-    function appendMessage(text) {
+    function appendMessage(msg) {
+      const box = document.getElementById("chatBox");
       const div = document.createElement("div");
-      div.textContent = text;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      div.textContent = msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
     }
   </script>
 </body>
