@@ -98,8 +98,14 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		if clients[serverId] != nil {
 			for conn := range clients[serverId] {
-				conn.WriteMessage(websocket.CloseMessage, []byte("nyx server has expired"))
-				conn.Close()
+				err := conn.WriteMessage(websocket.CloseMessage, []byte("nyx server has expired"))
+				if err != nil {
+					log.Print("could not close the nyx server chat room")
+				}
+				err = conn.Close()
+				if err != nil {
+					log.Print("could not close the websocket connection")
+				}
 			}
 			delete(clients, serverId)
 		}
@@ -140,7 +146,10 @@ func HandleBroadcasts() {
 			err := conn.WriteJSON(msg)
 			if err != nil {
 				log.Println("Write error:", err)
-				conn.Close()
+				err = conn.Close()
+				if err != nil {
+					log.Print("could not close the websocket connection")
+				}
 				delete(clients[msg.ServerID], conn)
 			}
 		}

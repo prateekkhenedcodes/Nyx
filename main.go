@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
+	"time"
 
 	"github.com/joho/godotenv"
 	mySchema "github.com/prateekkhenedcodes/Nyx/sql/schema"
@@ -34,7 +35,10 @@ func main() {
 	const port = "8080"
 	const filePathRoot = "./assets"
 
-	godotenv.Load(".env")
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("could not read the .env file")
+	}
 	apiCfg := &apiConfig{}
 	apiCfg.db = db
 	apiCfg.admin = os.Getenv("ADMIN")
@@ -74,8 +78,9 @@ func main() {
 	mux.HandleFunc("GET /api/nyx-servers/join", apiCfg.JoinNyxServer)
 
 	s := http.Server{
-		Handler: mux,
-		Addr:    ":" + port,
+		Handler:           mux,
+		Addr:              ":" + port,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	log.Printf("serving files from %v on port %v", filePathRoot, port)
