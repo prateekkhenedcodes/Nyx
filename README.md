@@ -1,5 +1,6 @@
 # Nyx
 
+![Unit Tests](https://github.com/prateekkhenedcodes/Nyx/actions/workflows/ci.yml/badge.svg)
 
 Nyx is HTTP webserver that is written from scratch in Golang where user need not to give any data and communicate securely.
 
