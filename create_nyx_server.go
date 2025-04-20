@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -20,6 +21,12 @@ type NyxServerRes struct {
 
 func (cfg *apiConfig) CreateNyxServer(w http.ResponseWriter, r *http.Request) {
 
+	type parameter struct {
+		MaxParticipants int `json:"max_participants"`
+		Duration        int `json:"duration_of_server"`
+	}
+	
+
 	header := r.Header
 	token, err := auth.GetBearerToken(header)
 	if err != nil {
@@ -33,8 +40,18 @@ func (cfg *apiConfig) CreateNyxServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expireTime := 60
-	maxParti := 2
+	params := parameter{}
+
+	decoder := json.NewDecoder(r.Body)
+
+	err = decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 500, "could not decode the parameters", err)
+		return
+	}
+
+	expireTime := params.Duration
+	maxParti := params.MaxParticipants
 
 	ServerTable, err := queries.AddNyxServer(
 		cfg.db,
