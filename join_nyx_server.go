@@ -57,6 +57,13 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, clientInfo := range clients[serverId] {
+		if clientInfo.accessToken == token {
+			respondWithError(w, 409, "you have already joined this server", fmt.Errorf("duplicate join attempt"))
+			return
+		}
+	}
+
 	serverData, err := queries.GetNyxServerByServerId(cfg.db, serverId)
 	if err != nil {
 		respondWithError(w, 401, "the server if does not exists", err)
