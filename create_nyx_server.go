@@ -25,7 +25,6 @@ func (cfg *apiConfig) CreateNyxServer(w http.ResponseWriter, r *http.Request) {
 		MaxParticipants int `json:"max_participants"`
 		Duration        int `json:"duration_of_server"`
 	}
-	
 
 	header := r.Header
 	token, err := auth.GetBearerToken(header)

@@ -26,7 +26,12 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var clients = make(map[string]map[*websocket.Conn]bool)
+type clientInfo struct {
+	websocketConn *websocket.Conn
+	accessToken   string
+}
+
+var clients = make(map[string][]clientInfo)
 
 var mu sync.Mutex
 
@@ -85,9 +90,12 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 
 	mu.Lock()
 	if clients[serverId] == nil {
-		clients[serverId] = make(map[*websocket.Conn]bool)
+		clients[serverId] = make([]clientInfo, 0)
 	}
-	clients[serverId][conn] = true
+	clients[serverId] = append(clients[serverId], clientInfo{
+		websocketConn: conn,
+		accessToken:   token,
+	})
 	mu.Unlock()
 
 	log.Printf("A client joined the server with server id %v", serverId)
@@ -97,12 +105,12 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 
 		mu.Lock()
 		if clients[serverId] != nil {
-			for conn := range clients[serverId] {
-				err := conn.WriteMessage(websocket.CloseMessage, []byte("nyx server has expired"))
+			for _, clientInfo := range clients[serverId] {
+				err := clientInfo.websocketConn.WriteMessage(websocket.CloseMessage, []byte("nyx server has expired"))
 				if err != nil {
 					log.Print("could not close the nyx server chat room")
 				}
-				err = conn.Close()
+				err = clientInfo.websocketConn.Close()
 				if err != nil {
 					log.Print("could not close the websocket connection")
 				}
@@ -120,10 +128,14 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			log.Println("Read error:", err)
-			mu.Lock()
-			delete(clients[serverId], conn)
-			mu.Unlock()
-			break
+			for i, clientInfo := range clients[serverId] {
+				if clientInfo.websocketConn == conn {
+					mu.Lock()
+					clients[serverId] = append(clients[serverId][:i], clients[serverId][i+1:]...)
+					mu.Unlock()
+					break
+				}
+			}
 		}
 		broadcast <- Message{
 			Pseudonym: msg.Pseudonym,
@@ -139,18 +151,18 @@ func HandleBroadcasts() {
 	for {
 		msg := <-broadcast
 		mu.Lock()
-		for conn := range clients[msg.ServerID] {
-			if conn == msg.Conn {
+		for i, clientInfo := range clients[msg.ServerID] {
+			if clientInfo.websocketConn == msg.Conn {
 				continue
 			}
-			err := conn.WriteJSON(msg)
+			err := clientInfo.websocketConn.WriteJSON(msg)
 			if err != nil {
 				log.Println("Write error:", err)
-				err = conn.Close()
+				err = clientInfo.websocketConn.Close()
 				if err != nil {
 					log.Print("could not close the websocket connection")
 				}
-				delete(clients[msg.ServerID], conn)
+				clients[msg.ServerID] = append(clients[msg.ServerID][:i], clients[msg.ServerID][i+1:]...)
 			}
 		}
 		mu.Unlock()
