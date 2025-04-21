@@ -39,7 +39,6 @@ var mu sync.Mutex
 var broadcast = make(chan Message)
 
 func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
-
 	serverId := r.URL.Query().Get("server_id")
 	token := r.URL.Query().Get("token")
 	if serverId == "" {
@@ -72,7 +71,7 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 
 	expTime, err := time.Parse(time.RFC3339, serverData.ExpiresAt)
 	if err != nil {
-		respondWithError(w, 500, "could not parse the sting to time.time", err)
+		respondWithError(w, 500, "could not parse the string to time.time", err)
 		return
 	}
 
@@ -95,6 +94,7 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 500, "upgrade failed", err)
 		return
 	}
+	defer conn.Close()
 
 	mu.Lock()
 	if clients[serverId] == nil {
@@ -135,15 +135,20 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 		var msg Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Println("Client disconnected:", err)
+				break
+			}
 			log.Println("Read error:", err)
+			mu.Lock()
 			for i, clientInfo := range clients[serverId] {
 				if clientInfo.websocketConn == conn {
-					mu.Lock()
 					clients[serverId] = append(clients[serverId][:i], clients[serverId][i+1:]...)
-					mu.Unlock()
 					break
 				}
 			}
+			mu.Unlock()
+			break
 		}
 		broadcast <- Message{
 			Pseudonym: msg.Pseudonym,
@@ -158,21 +163,32 @@ func (cfg *apiConfig) JoinNyxServer(w http.ResponseWriter, r *http.Request) {
 func HandleBroadcasts() {
 	for {
 		msg := <-broadcast
+
 		mu.Lock()
+
+		toRemove := []int{}
 		for i, clientInfo := range clients[msg.ServerID] {
 			if clientInfo.websocketConn == msg.Conn {
 				continue
 			}
+
 			err := clientInfo.websocketConn.WriteJSON(msg)
 			if err != nil {
 				log.Println("Write error:", err)
-				err = clientInfo.websocketConn.Close()
+
+				err := clientInfo.websocketConn.Close()
 				if err != nil {
-					log.Print("could not close the websocket connection")
+					log.Printf("could not close websocket connection: %v", err)
 				}
-				clients[msg.ServerID] = append(clients[msg.ServerID][:i], clients[msg.ServerID][i+1:]...)
+
+				toRemove = append(toRemove, i)
 			}
 		}
+
+		for _, i := range toRemove {
+			clients[msg.ServerID] = append(clients[msg.ServerID][:i], clients[msg.ServerID][i+1:]...)
+		}
+
 		mu.Unlock()
 	}
 }
