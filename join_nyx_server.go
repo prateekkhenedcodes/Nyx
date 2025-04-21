@@ -202,7 +202,10 @@ func (cfg *apiConfig) DisconnectNyxServer(w http.ResponseWriter, r *http.Request
 	for i, clientInfo := range clients[params.ServerID] {
 		if clientInfo.accessToken == token {
 			clients[params.ServerID] = append(clients[params.ServerID][:i], clients[params.ServerID][i+1:]...)
-			clientInfo.websocketConn.Close()
+			err := clientInfo.websocketConn.Close()
+			if err != nil {
+				log.Print("coudl not close the websocket connection")
+			}
 			mu.Unlock()
 			respondWithJSON(w, 200, nil)
 			return
