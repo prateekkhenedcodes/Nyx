@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -167,4 +168,46 @@ func HandleBroadcasts() {
 		}
 		mu.Unlock()
 	}
+}
+
+func (cfg *apiConfig) DisconnectNyxServer(w http.ResponseWriter, r *http.Request) {
+
+	type parameter struct {
+		ServerID string `json:"server_id"`
+	}
+
+	header := r.Header
+	token, err := auth.GetBearerToken(header)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorised", err)
+		return
+	}
+
+	_, err = auth.ValidateJWT(token, cfg.secretToken)
+	if err != nil {
+		respondWithError(w, 401, "Unauthorised", err)
+		return
+	}
+
+	params := parameter{}
+
+	decoder := json.NewDecoder(r.Body)
+
+	err = decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 500, "could not decode the parameters", err)
+		return
+	}
+	mu.Lock()
+	for i, clientInfo := range clients[params.ServerID] {
+		if clientInfo.accessToken == token {
+			clients[params.ServerID] = append(clients[params.ServerID][:i], clients[params.ServerID][i+1:]...)
+			clientInfo.websocketConn.Close()
+			mu.Unlock()
+			respondWithJSON(w, 200, nil)
+			return
+		}
+	}
+	mu.Unlock()
+	respondWithError(w, 200, "you are not connected to this server", fmt.Errorf("you are not in this server, check the serverID once"))
 }

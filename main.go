@@ -76,6 +76,7 @@ func main() {
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
 	mux.HandleFunc("GET /api/nyx-servers/join", apiCfg.JoinNyxServer)
+	mux.HandleFunc("POST /api/nyx-servers/disconnect", apiCfg.DisconnectNyxServer)
 
 	s := http.Server{
 		Handler:           mux,
