@@ -29,6 +29,7 @@ Nyx is HTTP webserver that is written from scratch in Golang where user need not
 	mux.HandleFunc("POST /api/logout", apiCfg.RevokeToken)
 	mux.HandleFunc("POST /api/nyx-servers", apiCfg.CreateNyxServer)
 	mux.HandleFunc("/api/nyx-servers/join", apiCfg.JoinNyxServer)
+	mux.HandleFunc("POST /api/nyx-servers/disconnect", apiCfg.DisconnectNyxServer)
 ```
 
 ##### ``/app/`` 
@@ -74,3 +75,7 @@ Nyx is HTTP webserver that is written from scratch in Golang where user need not
 ##### ``/api/nyx-servers/join``
 
 * ``/api/nyx-servers/join`` end-point used to join the nyx-server using credentials from the previous end-point.
+
+##### ``/api/nyx-servers/disconnect``
+
+* ``/api/nyx-servers/disconnect`` end-point use to disconnect from the particular server with specifing the serverId in the request body.
