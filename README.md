@@ -79,3 +79,15 @@ Nyx is HTTP webserver that is written from scratch in Golang where user need not
 ##### ``/api/nyx-servers/disconnect``
 
 * ``/api/nyx-servers/disconnect`` end-point use to disconnect from the particular server with specifing the serverId in the request body.
+
+# Technicals
+
+- **Golang** – Primary programming language for backend logic.
+- **Gorilla WebSocket** – Enables real-time, full-duplex WebSocket communication.
+- **net/http** – Go’s built-in HTTP server and request handling.
+- **UUID (github.com/google/uuid)** – For generating unique server and session identifiers.
+- **JWT Authentication** – Secure token validation for client access control.
+- **In-Memory Data Structures** – Maps for managing active server-client sessions.
+- **Goroutines & Channels** – For handling concurrent connections and message broadcasting.
+- **Error Handling & Cleanup** – Graceful handling of closed connections and expired servers.
+- **Logging (log package)** – For connection tracing and debugging.
