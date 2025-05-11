@@ -4,7 +4,7 @@
 
 Nyx is HTTP webserver that is written from scratch in Golang where user need not to give any data and communicate securely.
 
-# Requirements
+## Requirements
 
 ```go1.24.1``` or greater
 
